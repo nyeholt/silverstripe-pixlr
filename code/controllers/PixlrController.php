@@ -34,6 +34,10 @@ class PixlrController extends Controller
 		'closepixlr',
 	);
 
+	public static $allowed_hosts = array(
+		''
+	);
+
     public function init()
 	{
 		SS_Log::log("initting log", SS_Log::NOTICE);
@@ -45,26 +49,79 @@ class PixlrController extends Controller
 		return Director::baseURL().'pixlr'.$action;
 	}
 
+	/**
+	 * Called by the pixlr service when it wants to save an image back to
+	 * silverstripe
+	 *
+	 * If it's a new image, will check to make sure that the selected folder
+	 * doesn't have an image of the same name, otherwise will immediately overwrite
+	 *
+	 *
+	 * @param HTTPRequest $request
+	 * @return Form
+	 */
 	public function saveimage($request)
 	{
-		SS_Log::log("Saving data ".var_export($request, true), SS_Log::NOTICE);
-
 		$form = $this->ImageSaveForm();
 		
 		$fields = $form->Fields();
 		
-		if (isset($request['image'])) {
-			// ?image=http://pixlr.com/_temp/4b544f161fd83.jpg&type=jpg&state=new&title=Untitled
+		if (isset($request['image']) && isset($request['state'])) {
+			if ($request['state'] == 'new') {
+				// ?image=http://pixlr.com/_temp/4b544f161fd83.jpg&type=jpg&state=new&title=Untitled
+				$fields->push(new HiddenField('image', 'Image', $request['image']));
+				$fields->push(new HiddenField('type', 'Type', $request['type']));
+				$fields->push(new HiddenField('state', 'State', $request['state']));
 
-			$fields->push(new HiddenField('Image', 'Image', $request['image']));
-			$fields->push(new HiddenField('Type', 'Type', $request['type']));
-			$fields->push(new HiddenField('State', 'State', $request['state']));
-			$fields->push(new TextField('Title', _t('PixlrController.IMAGE_TITLE', 'Image Title'), $request['title']));
+				// if the state is 'new', then need to make sure there's not another item with the same name
+				// if so, the user MUST change it, otherwise it'll overwrite the existing image
+				$parent = isset($request['parent']) ? $request['parent'] : 0;
+				$fname = $request['title'].'.'.$request['type'];
+				$existing = null;
+				// only check for a parent if we've actually selected to save somewhere
+				if ($parent) {
+					$existing = $this->getExistingImage($fname, $parent);
+				}
+
+				if ($existing && $existing->ID) {
+					$msg = '<div class="error"><p>That file already exists - please choose another name</p></div>';
+					$fields->push(new TextField('title', _t('PixlrController.IMAGE_TITLE', 'Image Title'), $request['title']));
+					$fields->push(new LiteralField('FileExists', _t('Pixlr.FILE_EXISTS', $msg)));
+				} else {
+					$fields->push(new HiddenField('title', 'title', $request['title']));
+				}
+			} else {
+				// extract the parent ID and name
+				if (preg_match('/'.PixlrEditorField::$image_name_prefix.'(\d+)_(.*)/', $request['title'], $matches)) {
+					$request['title'] = $matches[2];
+					$request['parent'] = $matches[1];
+				} else {
+					// something's gone wrong...!
+					$request['parent'] = 0;
+				}
+				$this->storeimage($request);
+			}
 		}
 
 		$data['SaveForm'] = $form;
 
 		return $this->customise($data)->renderWith('PixlrController_saveimage');
+	}
+
+	/**
+	 * Determine whether an image exists or not
+	 *
+	 * @param The name of the image $name
+	 * @param The parent folder to search within $parent
+	 * @return File
+	 */
+	protected function getExistingImage($fname, $parent=0)
+	{
+		$filter = '"Title" = \''.Convert::raw2sql($fname)."'";
+		$filter .= $parent ? ' AND "ParentID" = \''.$parent.'\'' : '';
+
+		$existing = DataObject::get_one('File', '"Title" = \''.Convert::raw2sql($fname)."'");
+		return $existing; 
 	}
 
 	/**
@@ -75,16 +132,27 @@ class PixlrController extends Controller
 	 */
 	public function storeimage($request)
 	{
-		if ($request['ImageTarget'] && isset($request['Image'])) {
+		if (!isset($request['parent']) || !$request['parent']) {
+			return $this->saveimage($request);
+		}
+
+		if ($request['parent'] && isset($request['image'])) {
 			// get the content and store it in the appropriate place in the assets
 			// folder, then run a sync on that folder
 
-			$folder = DataObject::get_by_id('Folder', $request['ImageTarget']);
+			$folder = DataObject::get_by_id('Folder', $request['parent']);
 			if ($folder->ID) {
-				/* @var $folder Folder */
-				$path = $folder->getFullPath().$request['Title'].'.'.$request['Type'];
+				$fname = $request['title'].'.'.$request['type'];
 
-				$session = curl_init($request['Image']);
+				$existing = $this->getExistingImage($fname, $request['parent']);
+				if ($existing) {
+					return $this->saveimage($request);
+				}
+
+				/* @var $folder Folder */
+				$path = $folder->getFullPath().$fname;
+
+				$session = curl_init($request['image']);
 
 				// get the file and store it into a local item
 				curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
@@ -117,9 +185,8 @@ class PixlrController extends Controller
 		);
 
 		$fields = new FieldSet();
-		$fields->push(
-			new TreeDropdownField('ImageTarget', _t('PixlrController.SAVE_TARGET', 'Save Image To'), 'Folder')
-		);
+		$fields->push(new TreeDropdownField('parent', _t('PixlrController.SAVE_TARGET', 'Save Image To'), 'Folder'));
+		$fields->push(new LiteralField('asdfsadf', '<div class="clear"></div>'));
 
 		$form = new Form($this, 'ImageSaveForm', $fields, $actions);
 		

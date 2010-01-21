@@ -1,4 +1,8 @@
 
-form { width: 60%; margin: 3em auto; }
-div { clear: both; }
-div.TreeDropdownField { width: 331px; }
+body { margin: 0; background: #606060; font-family: Arial, sans-serif }
+form { width: 60%; margin: 3em auto; background: #fff; }
+fieldset { border: 0}
+div { clear: both; margin-bottom: 1em}
+#PixlrDetails div.TreeDropdownField { width: 331px; }
+p { margin: 0; }
+.error { color: #d00 }

@@ -1,6 +1,6 @@
 <?php
-/* 
- * 
+/*
+
 Copyright (c) 2009, SilverStripe Australia PTY LTD - www.silverstripe.com.au
 All rights reserved.
 
@@ -18,12 +18,18 @@ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIA
 GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
+*/
+
+/**
+ * 
+ *
+ * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
-
-Director::addRules(50, array(
-	'pixlr' => 'PixlrController',
-));
-
-DataObject::add_extension('Image', 'PixlrImageDecorator');
-Object::add_extension('HtmlEditorField_Toolbar', 'PixlrImageFormDecorator');
+class PixlrImageFormDecorator extends Extension
+{
+    public function updateImageFormFields($fields)
+	{
+		$fields->insertAfter(new PixlrEditorField('NewPixlrImage', _t('Pixlr.CREATE_NEW', 'Create New')), 'FolderID');
+	}
+}
 ?>

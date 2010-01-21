@@ -27,11 +27,16 @@ OF SUCH DAMAGE.
  */
 class PixlrController extends Controller
 {
+
+	public static $pixlr_upload_uri = 'http://pixlr.com/store/';
+	public static $pixlr_temp_uri = 'http://pixlr.com/_temp/';
+	
 	public static $allowed_actions = array(
 		'saveimage',
 		'ImageSaveForm',
 		'saveimage',
 		'closepixlr',
+		'sendimage',
 	);
 
 	public static $allowed_hosts = array(
@@ -47,6 +52,39 @@ class PixlrController extends Controller
 	public function Link($action='')
 	{
 		return Director::baseURL().'pixlr'.$action;
+	}
+
+	/**
+	 * Sends an image to the Pixlr server, receiving back the image ID as the
+	 * response parameter, which is then forwarded to the browser
+	 *
+	 * @param HTTPRequest $request
+	 */
+	public function sendimage($request)
+	{
+		if (!isset($request['ID'])) {
+			throw new Exception("Invalid image ID");
+		}
+
+		$file = DataObject::get_by_id('Image', $request['ID']);
+
+		if ($file && $file->ID) {
+			$content = base64_encode(file_get_contents($file->getFullPath()));
+			$type = File::get_file_extension($file->Filename);
+			include_once 'Zend/Http/Client.php';
+
+			$client = new Zend_Http_Client(self::$pixlr_upload_uri);
+			$client->setParameterPost('image', $content);
+			$client->setParameterPost('type', $type);
+			$client->setMethod('POST');
+			$result = $client->request()->getBody();
+
+			if (strpos($result, 'ERR') === 0) {
+				throw new Exception("Failed uploading image: $result");
+			}
+
+			return self::$pixlr_temp_uri . $result;
+		}
 	}
 
 	/**
@@ -91,15 +129,7 @@ class PixlrController extends Controller
 					$fields->push(new HiddenField('title', 'title', $request['title']));
 				}
 			} else {
-				// extract the parent ID and name
-				if (preg_match('/'.PixlrEditorField::$image_name_prefix.'(\d+)_(.*)/', $request['title'], $matches)) {
-					$request['title'] = $matches[2];
-					$request['parent'] = $matches[1];
-				} else {
-					// something's gone wrong...!
-					$request['parent'] = 0;
-				}
-				$this->storeimage($request);
+				return $this->storeimage($request);
 			}
 		}
 
@@ -125,7 +155,9 @@ class PixlrController extends Controller
 	}
 
 	/**
-	 * Store an image within silverstripe
+	 * Store an image within silverstripe. This is triggered either
+	 * by the "create new" form, or passed on directly from the pixlr
+	 * application
 	 *
 	 * @param array $request
 	 * @return String
@@ -145,7 +177,9 @@ class PixlrController extends Controller
 				$fname = $request['title'].'.'.$request['type'];
 
 				$existing = $this->getExistingImage($fname, $request['parent']);
-				if ($existing) {
+
+				// if it exists, and it's a NEW image, then we don't allow creation
+				if ($existing && $request['state'] == 'new') {
 					return $this->saveimage($request);
 				}
 
@@ -167,6 +201,12 @@ class PixlrController extends Controller
 				curl_close($session);
 
 				Filesystem::sync($folder->ID);
+
+				// if there was an existing one, make sure to clean up
+				// its renditions
+				if ($existing && $existing instanceof Image) {
+					$existing->deleteFormattedImages();
+				}
 			}
 		}
 

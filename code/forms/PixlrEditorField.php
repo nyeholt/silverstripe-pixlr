@@ -30,17 +30,43 @@ class PixlrEditorField extends FormField
 {
 	public static $image_name_prefix = "Parent_ID_";
 
+	/**
+	 * Set this to true if you have created a top level crossdomain.xml file. There's an example in
+	 * the module's directory if you wish to use that.
+	 *
+	 * Additionally, if you are running on a lan or local network with no ability
+	 * for pixlr to request the image publicly from your server over the internet,
+	 * leave this false and the image will be transferred to pixlr instead.
+	 *
+	 * @var boolean
+	 */
+	public static $use_credentials = false;
+
 	private $label;
+
+	private $targetUrl;
+	private $exitUrl;
+	private $returnParams;
 
 	/**
 	 *
 	 * @param String $name
 	 * @param String $title
 	 * @param Image $value
+	 * @param array $params
+	 *			Any additional parameters that should be sent back to
+	 *			the save handler
+	 * @param String $targetUrl
+	 *			The URL that pixlr returns data back to
+	 * @param String $exitUrl
+	 *			The URL called if pixlr is closed without saving any data
 	 */
-    public function __construct($name, $title = '', $value = '')
+    public function __construct($name, $title = '', $value = '', $returnParams = array(), $targetUrl = '', $exitUrl = '')
 	{
 		$this->label = $title;
+		$this->targetUrl = $targetUrl;
+		$this->exitUrl = $exitUrl;
+		$this->returnParams = $returnParams;
 		
 		parent::__construct($name, '', $value);
 	}
@@ -57,16 +83,48 @@ class PixlrEditorField extends FormField
 			'type' => 'button',
 		);
 
+		$targetUrl = strlen($this->targetUrl) ? $this->targetUrl : Director::absoluteURL('pixlr/saveimage');
+		$exitUrl = strlen($this->exitUrl) ? $this->exitUrl : Director::absoluteURL('pixlr/closepixlr');
+
+		// now add any additional parameters onto the end of the target string
+		$sep = strpos($targetUrl, '?') ? '&amp;' : '?';
+
+		foreach ($this->returnParams as $param => $v) {
+			$targetUrl .= $sep . $param . '=' . $v;
+			$sep = '&amp;';
+		}
+
 		$opts = array(
 			'referrer' => Convert::raw2js('SilverStripe CMS'),
 			// 'loc' => Member::currentUser()->
-			'title' => $this->value ? Convert::raw2js(self::$image_name_prefix . $this->value->ParentID . '_' . $this->value->Title) : '',
+			'title' => $this->value ? Convert::raw2js($this->value->Title) : 'New Image',
 			'locktarget' => 'true',
+			'exit' => $exitUrl,
+			'target' => $targetUrl,
+			'method' => 'get',
 		);
 
+		// where should we open the editor? as in, which window is it rooted in? 
+		$openin = 'window';
+
 		if ($this->value) {
+			if (self::$use_credentials) {
+				$opts['credentials'] = 'true';
+				$opts['image'] = Convert::raw2js(Director::absoluteBaseURL() . $this->value->Filename);
+			} else {
+				// need to post the image to their server first, so we'll
+				// base64_encode it now and stick the raw data into the page. We don't want to do
+				// the actual post yet though, because it might not actually be used til the
+				// client wants to start the editing
+				// @TODO - revisit this? 
+				$opts['id'] = $this->value->ID;
+				$opts['preload'] = Director::absoluteURL('pixlr/sendimage');
+
+				$openin = 'window.parent.parent';
+			}
+
 			$opts['locktitle'] = 'true';
-			$opts['image'] = Convert::raw2js(Director::absoluteBaseURL() . $this->value->Filename);
+			
 			$opts['mode'] = 'popup';
 		}
 
@@ -74,7 +132,9 @@ class PixlrEditorField extends FormField
 
 		$script = <<<JSCRIPT
 jQuery().ready(function () {
-jQuery('#{$this->id()}').pixlrize($opts);
+var opts = $opts;
+opts.openin = $openin;
+jQuery('#{$this->id()}').pixlrize(opts);
 });
 JSCRIPT;
 
@@ -82,5 +142,6 @@ JSCRIPT;
 
 		return $this->createTag('input', $fieldAttributes);
 	}
+
 }
 ?>

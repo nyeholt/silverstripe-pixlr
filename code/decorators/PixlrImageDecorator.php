@@ -29,7 +29,8 @@ class PixlrImageDecorator extends DataObjectDecorator
 {
     public function updateCMSFields($fields)
 	{
-		$fields->addFieldToTab('BottomRoot.Image', new PixlrEditorField('PixlrButton', 'Edit this image', $this->owner));
+		$params = array('parent' => $this->owner->ParentID);
+		$fields->addFieldToTab('BottomRoot.Image', new PixlrEditorField('PixlrButton', 'Edit this image', $this->owner, $params));
 	}
 }
 ?>

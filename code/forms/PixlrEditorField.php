@@ -28,8 +28,6 @@ OF SUCH DAMAGE.
  */
 class PixlrEditorField extends FormField
 {
-	public static $image_name_prefix = "Parent_ID_";
-
 	/**
 	 * Set this to true if you have created a top level crossdomain.xml file. There's an example in
 	 * the module's directory if you wish to use that.

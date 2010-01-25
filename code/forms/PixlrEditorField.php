@@ -95,7 +95,7 @@ class PixlrEditorField extends FormField
 		$opts = array(
 			'referrer' => Convert::raw2js('SilverStripe CMS'),
 			// 'loc' => Member::currentUser()->
-			'title' => $this->value ? Convert::raw2js($this->value->Title) : 'New Image',
+			'title' => $this->value ? Convert::raw2js($this->value->Name) : 'New Image',
 			'locktarget' => 'true',
 			'exit' => $exitUrl,
 			'target' => $targetUrl,

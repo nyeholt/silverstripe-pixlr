@@ -139,22 +139,6 @@ class PixlrController extends Controller
 	}
 
 	/**
-	 * Determine whether an image exists or not
-	 *
-	 * @param The name of the image $name
-	 * @param The parent folder to search within $parent
-	 * @return File
-	 */
-	protected function getExistingImage($fname, $parent=0)
-	{
-		$filter = '"Title" = \''.Convert::raw2sql($fname)."'";
-		$filter .= $parent ? ' AND "ParentID" = \''.$parent.'\'' : '';
-
-		$existing = DataObject::get_one('File', '"Title" = \''.Convert::raw2sql($fname)."'");
-		return $existing; 
-	}
-
-	/**
 	 * Store an image within silverstripe. This is triggered either
 	 * by the "create new" form, or passed on directly from the pixlr
 	 * application
@@ -186,8 +170,10 @@ class PixlrController extends Controller
 				/* @var $folder Folder */
 				$path = $folder->getFullPath().$fname;
 
+				// @TODO Manually using CURL here to handle file downloads
+				// more efficiently, should probably swap to a correctly
+				// configured Zend_Http_Client
 				$session = curl_init($request['image']);
-
 				// get the file and store it into a local item
 				curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
 				$response = curl_exec($session);
@@ -197,15 +183,33 @@ class PixlrController extends Controller
 				}
 				fwrite($fp, $response);
 				fclose($fp);
-
 				curl_close($session);
 
-				Filesystem::sync($folder->ID);
-
+				// create a new image to represent the new file
 				// if there was an existing one, make sure to clean up
 				// its renditions
 				if ($existing && $existing instanceof Image) {
-					$existing->deleteFormattedImages();
+					// we're going to cheat and ensure that the image is marked as
+					// changed so that it will version etc if that module is installed
+					$existing->LastEdited = date('Y-m-d H:i:s');
+				}
+
+				if (!$existing) {
+					$existing = object::create('Image');
+					$existing->ParentID = $folder->ID;
+					$existing->Filename = $folder->Filename.'/'.$fname;
+					$existing->Name = $image->Title = $fname;
+
+					// save the image
+					$existing->write();
+				} else {
+					// make sure to version it if the extension exists... This will
+					// regenerate all renditions for us too 
+					if (false && $existing->hasField('CurrentVersionID')) {
+						$existing->createVersion();
+					} else {
+						$existing->regenerateFormattedImages();
+					}
 				}
 			}
 		}
@@ -237,5 +241,23 @@ class PixlrController extends Controller
 	{
 		return $this->renderWith('PixlrController_storeimage');
 	}
+
+
+	/**
+	 * Determine whether an image exists or not
+	 *
+	 * @param The name of the image $name
+	 * @param The parent folder to search within $parent
+	 * @return File
+	 */
+	protected function getExistingImage($fname, $parent=0)
+	{
+		$filter = '"Title" = \''.Convert::raw2sql($fname)."'";
+		$filter .= $parent ? ' AND "ParentID" = \''.$parent.'\'' : '';
+
+		$existing = DataObject::get_one('Image', '"Name" = \''.Convert::raw2sql($fname)."'");
+		return $existing;
+	}
+
 }
 ?>

@@ -27,6 +27,8 @@ Documentation
   application can directly access the image files it needs. Make sure to set
   PixlrEditorField::$use_credentials to TRUE in your mysite/_config.php
 
+Further information can be found at 
+http://wiki.github.com/nyeholt/silverstripe-pixlr/
 
 API
 ------------------------------------------------------------------------------

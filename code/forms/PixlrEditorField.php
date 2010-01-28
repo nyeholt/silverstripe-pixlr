@@ -89,7 +89,7 @@ class PixlrEditorField extends FormField
 
 		foreach ($this->returnParams as $param => $v) {
 			$targetUrl .= $sep . $param . '=' . $v;
-			$sep = '&amp;';
+			$sep = '&';
 		}
 
 		$opts = array(
@@ -110,14 +110,14 @@ class PixlrEditorField extends FormField
 				$opts['credentials'] = 'true';
 				$opts['image'] = Convert::raw2js(Director::absoluteBaseURL() . $this->value->Filename);
 			} else {
-				// need to post the image to their server first, so we'll
-				// base64_encode it now and stick the raw data into the page. We don't want to do
-				// the actual post yet though, because it might not actually be used til the
-				// client wants to start the editing
-				// @TODO - revisit this? 
+				// need to post the image to their server first, so we'll stick the image ID into the
+				// page, and let the jquery plugin handle uploading it to pixlr first
 				$opts['id'] = $this->value->ID;
 				$opts['preload'] = Director::absoluteURL('pixlr/sendimage');
 
+				// In silverstripe, when editing an image it actually occurs in an iframe popup contained within
+				// another iframe. Because we want the editor to appear mounted in the top level window,
+				// we have to explicitly add it to the correct location
 				$openin = 'window.parent.parent';
 			}
 

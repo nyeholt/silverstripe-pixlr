@@ -105,7 +105,19 @@ class PixlrController extends Controller
 		$fields = $form->Fields();
 		
 		if (isset($request['image']) && isset($request['state'])) {
-			if ($request['state'] == 'new') {
+			// see if there's a transaction key to be used, because if the
+			// key is different, then we want the user to be prompted to
+			// save the file somewhere else instead. This displays the form
+			// for the user to fill out where to save the item to, but if
+			// the user decides to leave everything as is, the transaction
+			// ID won't be in the subsequent request here, so it'll just do an overwrite
+			$editKey = isset($request['transaction']) ? $request['transaction'] : 0;
+			$existEdit = null;
+			if ($editKey) {
+				$existEdit = DataObject::get_one('Image', db_quote(array('TransactionKey =' => $editKey)));
+			}
+
+			if ($request['state'] == 'new' || !$existEdit || !$existEdit->ID) {
 				// ?image=http://pixlr.com/_temp/4b544f161fd83.jpg&type=jpg&state=new&title=Untitled
 				$fields->push(new HiddenField('image', 'Image', $request['image']));
 				$fields->push(new HiddenField('type', 'Type', $request['type']));
@@ -114,17 +126,35 @@ class PixlrController extends Controller
 				// if the state is 'new', then need to make sure there's not another item with the same name
 				// if so, the user MUST change it, otherwise it'll overwrite the existing image
 				$parent = isset($request['parent']) ? $request['parent'] : 0;
+				
 				$fname = $request['title'].'.'.$request['type'];
+				
 				$existing = null;
 				// only check for a parent if we've actually selected to save somewhere
 				if ($parent) {
 					$existing = $this->getExistingImage($fname, $parent);
+					$fields->push(new HiddenField('parent', 'ParentID', $parent));
+				} else {
+					$fields->push(new TreeDropdownField('parent', _t('PixlrController.SAVE_TARGET', 'Save Image To'), 'Folder'));
+					$fields->push(new LiteralField('asdfsadf', '<div class="clear"></div>'));
 				}
 
-				if ($existing && $existing->ID) {
-					$msg = '<div class="error"><p>That file already exists - please choose another name</p></div>';
-					$fields->push(new TextField('title', _t('PixlrController.IMAGE_TITLE', 'Image Title'), $request['title']));
-					$fields->push(new LiteralField('FileExists', _t('Pixlr.FILE_EXISTS', $msg)));
+				if ($editKey || ($existing && $existing->ID)) {
+					if ($editKey) {
+						$txt = 'It looks like someone else has edited the image since you started. You can choose to
+save using the same name, but be aware that they may override this image later (they will also receive this image
+when they attempt to save). Otherwise, choose a new name and re-edit the image later';
+						$msg = '<div class="error"><p>'._t('Pixlr.INVALID_TRANSACTION', $txt).'</p></div>';
+					} else {
+						$msg = '<div class="error"><p>'._t('Pixlr.EXISTING_FILE', 'That file already exists - please choose another name').'</p></div>';
+					}
+					if ($editKey) {
+						$fname = $request['title'].'.'.$editKey;
+					} else {
+						$fname = $request['title'];
+					}
+					$fields->push(new TextField('title', _t('PixlrController.IMAGE_TITLE', 'Image Title'), $fname));
+					$fields->push(new LiteralField('FileExists',$msg));
 				} else {
 					$fields->push(new HiddenField('title', 'title', $request['title']));
 				}
@@ -189,9 +219,8 @@ class PixlrController extends Controller
 				// if there was an existing one, make sure to clean up
 				// its renditions
 				if ($existing && $existing instanceof Image) {
-					// we're going to cheat and ensure that the image is marked as
-					// changed so that it will version etc if that module is installed
-					$existing->LastEdited = date('Y-m-d H:i:s');
+					// empty the transaction key setting, as we're done
+					$existing->TransactionKey = '';
 				}
 
 				if (!$existing) {
@@ -205,10 +234,11 @@ class PixlrController extends Controller
 				} else {
 					// make sure to version it if the extension exists... This will
 					// regenerate all renditions for us too 
-					if (false && $existing->hasField('CurrentVersionID')) {
+					if ($existing->hasField('CurrentVersionID')) {
 						$existing->createVersion();
 					} else {
 						$existing->regenerateFormattedImages();
+						$existing->write();
 					}
 				}
 			}
@@ -229,8 +259,7 @@ class PixlrController extends Controller
 		);
 
 		$fields = new FieldSet();
-		$fields->push(new TreeDropdownField('parent', _t('PixlrController.SAVE_TARGET', 'Save Image To'), 'Folder'));
-		$fields->push(new LiteralField('asdfsadf', '<div class="clear"></div>'));
+		
 
 		$form = new Form($this, 'ImageSaveForm', $fields, $actions);
 		
@@ -252,10 +281,10 @@ class PixlrController extends Controller
 	 */
 	protected function getExistingImage($fname, $parent=0)
 	{
-		$filter = '"Title" = \''.Convert::raw2sql($fname)."'";
+		$filter = '"Name" = \''.Convert::raw2sql($fname)."'";
 		$filter .= $parent ? ' AND "ParentID" = \''.$parent.'\'' : '';
 
-		$existing = DataObject::get_one('Image', '"Name" = \''.Convert::raw2sql($fname)."'");
+		$existing = DataObject::get_one('Image', $filter);
 		return $existing;
 	}
 

@@ -21,7 +21,7 @@ OF SUCH DAMAGE.
 */
 
 /**
- * 
+ * Tests to make sure the html editor gets the pixlr 'create new' button inserted 
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */

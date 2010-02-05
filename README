@@ -11,6 +11,7 @@ Marcus Nyeholt
 Requirements
 ------------------------------------------------------------------------------
 SilverStripe 2.4.x
+CURL
 VersionedFiles (optional)
 
 It is recommended you use the VersionedFiles module to ensure that any

@@ -133,10 +133,10 @@ class PixlrController extends Controller
 				// only check for a parent if we've actually selected to save somewhere
 				if ($parent) {
 					$existing = $this->getExistingImage($fname, $parent);
+					$fields->removeByName('parent');
 					$fields->push(new HiddenField('parent', 'ParentID', $parent));
 				} else {
-					$fields->push(new TreeDropdownField('parent', _t('PixlrController.SAVE_TARGET', 'Save Image To'), 'Folder'));
-					$fields->push(new LiteralField('asdfsadf', '<div class="clear"></div>'));
+
 				}
 
 				if ($editKey || ($existing && $existing->ID)) {
@@ -259,7 +259,11 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 		);
 
 		$fields = new FieldSet();
-		
+
+		// this needs to be declared here, otherwise the ajax callback
+		// doesn't work. We remove it later if we don't need it
+		$fields->push(new TreeDropdownField('parent', _t('PixlrController.SAVE_TARGET', 'Save Image To'), 'Folder'));
+		$fields->push(new LiteralField('asdfsadf', '<div class="clear"></div>'));
 
 		$form = new Form($this, 'ImageSaveForm', $fields, $actions);
 		

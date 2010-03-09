@@ -5,7 +5,6 @@
 
 		return this.each(function () {
 			var $this = $(this);
-			var baseUrl = $('base').attr('href');
 			var o = $.meta ? $.extend({}, opts, $this.data()) : opts;
 			
 			// when clicked, want to launch pixlr

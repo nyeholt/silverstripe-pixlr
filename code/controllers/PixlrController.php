@@ -21,7 +21,8 @@ OF SUCH DAMAGE.
 */
 
 /**
- * 
+ * The controller that manages requests to and from Pixlr's servers,
+ * which in turn provides inline image editing capabilities
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
@@ -43,20 +44,33 @@ class PixlrController extends Controller
 		''
 	);
 
+
     public function init()
 	{
 		SS_Log::log("initting log", SS_Log::NOTICE);
 		parent::init();
 	}
 
+	/**
+	 *
+	 * @param String $action
+	 * @return String
+	 */
 	public function Link($action='')
 	{
-		return Director::baseURL().'pixlr'.$action;
+		return Director::baseURL().'pixlr/'.$action;
 	}
 
 	/**
 	 * Sends an image to the Pixlr server, receiving back the image ID as the
 	 * response parameter, which is then forwarded to the browser
+	 *
+	 * This method is used as a means to work around the issue where images are stored
+	 * on servers that are behind firewalls, in which case pixlr's servers are unable to
+	 * retrieve the content directly, so it must be pushed to pixlr.
+	 *
+	 * This method is still relatively secure in that the image ID returned is only known to
+	 * us and pixlr - it is a unique key, effectively a one time password.
 	 *
 	 * @param HTTPRequest $request
 	 */
@@ -69,16 +83,13 @@ class PixlrController extends Controller
 		$file = DataObject::get_by_id('Image', $request['ID']);
 
 		if ($file && $file->ID) {
-			$content = base64_encode(file_get_contents($file->getFullPath()));
-			$type = File::get_file_extension($file->Filename);
 			include_once 'Zend/Http/Client.php';
 
 			$client = new Zend_Http_Client(self::$pixlr_upload_uri);
-			$client->setParameterPost('image', $content);
-			$client->setParameterPost('type', $type);
+
+			$client->setFileUpload($file->getFullPath(), 'image');
 			$client->setMethod('POST');
 			$result = $client->request()->getBody();
-
 			if (strpos($result, 'ERR') === 0) {
 				throw new Exception("Failed uploading image: $result");
 			}

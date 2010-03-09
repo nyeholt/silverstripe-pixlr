@@ -1,4 +1,7 @@
-
+2010-03-09
+----------
+* Changed from using base64 encoded images to directly posting files to pixlr 
+* Updated to work better with 2.4 branch
 
 
 2010-01-22

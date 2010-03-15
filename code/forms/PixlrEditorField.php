@@ -40,10 +40,34 @@ class PixlrEditorField extends FormField
 	 */
 	public static $use_credentials = false;
 
+	/**
+	 * What the user sees
+	 *
+	 * @var String
+	 */
 	private $label;
 
+	/**
+	 * The URL that the user is sent back to when they 'save' in pixlr
+	 *
+	 * @var String
+	 */
 	private $targetUrl;
+
+	/**
+	 * The url to go to if the user clicks on "Exit" in pixlr
+	 *
+	 * @var String
+	 */
 	private $exitUrl;
+
+	/**
+	 * Additional parameters to send through to pixlr that then get sent back to the save handler
+	 *
+	 * Handy for passing additional IDs etc through
+	 *
+	 * @var String
+	 */
 	private $returnParams;
 
 	/**
@@ -52,8 +76,7 @@ class PixlrEditorField extends FormField
 	 * @param String $title
 	 * @param Image $value
 	 * @param array $params
-	 *			Any additional parameters that should be sent back to
-	 *			the save handler
+	 *			Any additional parameters that should be sent back to the save handler when pixlr calls us back
 	 * @param String $targetUrl
 	 *			The URL that pixlr returns data back to
 	 * @param String $exitUrl

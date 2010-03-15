@@ -1,11 +1,10 @@
 <html>
-
 	<head>
 		<% base_tag %>
 		<% require css(pixlr/css/pixlr.css) %>
 		<% require javascript(sapphire/thirdparty/jquery/jquery-packed.js) %>
 	</head>
-	<body>
+	<body class="pixlrPage">
 		<div id="PixlrDetails">
 			<script type="text/javascript">
 				function refreshAndClose() {
@@ -18,16 +17,32 @@
 							if (subframe.length > 0) {
 								subframe[0].src = subframe[0].src;
 							}
+							window.parent.pixlr.overlay.hide();
+						} else {
+							// we might have to refresh the FolderID tree...
+							var folderList = parentWindow.find('#FolderImages');
+							if (folderList.length) {
+								var folderListElem = folderList[0];
+								folderListElem.ajaxGetFiles($Parent.ID, '$Image.Name.JS', function () {
+									// so in that method it does a behaviour application, so we do
+									// that
+									folderListElem.reapplyBehaviour.bind(folderListElem).call();
+									jQuery(folderListElem).find('a[title="$Image.Title.JS"]').click();
+									window.parent.pixlr.overlay.hide();
+								});
+							} else {
+								window.parent.pixlr.overlay.hide();
+							}
 						}
-
-						window.parent.pixlr.overlay.hide();
 					} else if (window.opener) {
 						window.close();
 					}
 				}
-				refreshAndClose();
+
+				// refreshAndClose();
+
 			</script>
-			
+			<input type="button" onclick="refreshAndClose()" value="CLCI" />
 		</div>
 	</body>
 </html>

@@ -54,6 +54,7 @@ class PixlrImageDecorator extends DataObjectDecorator
 		$this->owner->write();
 
 		$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey);
+
 		$fields->addFieldToTab('BottomRoot.Image', new PixlrEditorField('PixlrButton', 'Edit this image', $this->owner, $params));
 
 	}

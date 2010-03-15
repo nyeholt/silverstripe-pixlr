@@ -193,12 +193,16 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 			return $this->saveimage($request);
 		}
 
+
+		$data = array('ParentID' => 0);
+		
 		if ($request['parent'] && isset($request['image'])) {
 			// get the content and store it in the appropriate place in the assets
 			// folder, then run a sync on that folder
 
 			$folder = DataObject::get_by_id('Folder', $request['parent']);
 			if ($folder->ID) {
+				$data['ParentID'] = $folder->ID;
 				$fname = $request['title'].'.'.$request['type'];
 
 				$existing = $this->getExistingImage($fname, $request['parent']);
@@ -252,10 +256,13 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 						$existing->write();
 					}
 				}
+
+				$data['Parent'] = $folder;
+				$data['Image'] = $existing;
 			}
 		}
 
-		$data = array();
+
 		return $this->customise($data)->renderWith('PixlrController_storeimage');
 	}
 
@@ -266,7 +273,8 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 	public function ImageSaveForm()
 	{
 		$actions = new FieldSet(
-			new FormAction('storeimage', _t('PixlrController.SAVE_IMAGE', 'Save Image'))
+			new FormAction('storeimage', _t('PixlrController.SAVE_IMAGE', 'Save Image')),
+			new FormAction('closepixlr', _t('PixlrController.CLOSE_PIXLR', 'Close Without Saving'))
 		);
 
 		$fields = new FieldSet();
@@ -281,6 +289,11 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 		return $form;
 	}
 
+	/**
+	 * Close the overlay!
+	 *
+	 * @return String
+	 */
 	public function closepixlr()
 	{
 		return $this->renderWith('PixlrController_storeimage');

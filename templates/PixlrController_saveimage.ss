@@ -4,7 +4,7 @@
 		<% require css(pixlr/css/pixlr.css) %>
 		<% require javascript(sapphire/thirdparty/jquery/jquery-packed.js) %>
 	</head>
-	<body>
+	<body class="pixlrPage">
 		<div id="PixlrDetails">
 			$SaveForm
 		</div>

@@ -1,3 +1,9 @@
+2010-03-16
+----------
+* Newly created images automatically selected after saving
+* Updated 'add image' text and graphic
+* Allow users to cancel a save or edit
+
 2010-03-09
 ----------
 * Changed from using base64 encoded images to directly posting files to pixlr 

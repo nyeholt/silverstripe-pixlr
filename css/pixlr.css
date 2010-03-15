@@ -1,8 +1,12 @@
 
-body { margin: 0; background: #606060; font-family: Arial, sans-serif }
-form { width: 60%; margin: 3em auto; background: #fff; }
-fieldset { border: 0}
-div { clear: both; margin-bottom: 1em}
+body.pixlrPage { margin: 0; background: #606060; font-family: Arial, sans-serif }
+
+.pixlrPage form { width: 60%; margin: 3em auto; background: #fff; }
+.pixlrPage fieldset { border: 0}
+.pixlrPage div { clear: both; margin-bottom: 1em}
 #PixlrDetails div.TreeDropdownField { width: 331px; }
-p { margin: 0; }
-.error { color: #d00 }
+
+.pixlrPage p { margin: 0; }
+.pixlrPage .error { color: #d00 }
+
+.pixlrTrigger { height: 24px; padding-right: 20px; background: transparent url(../images/pixlr.gif) 96% no-repeat;}

@@ -27,9 +27,11 @@ OF SUCH DAMAGE.
  */
 class PixlrImageFormDecorator extends Extension
 {
-    public function updateImageFormFields($fields)
+    public function updateImageForm($form)
 	{
-		$fields->insertAfter(new PixlrEditorField('NewPixlrImage', _t('Pixlr.CREATE_NEW', 'Create New')), 'FolderID');
+		Requirements::css('pixlr/css/pixlr.css');
+		$fields = $form->Fields();
+		$fields->insertAfter(new PixlrEditorField('NewPixlrImage', _t('Pixlr.ADD_IMAGE', 'Add Image with Pixlr')), 'FolderID');
 	}
 }
 ?>

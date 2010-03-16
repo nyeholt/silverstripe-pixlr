@@ -1,3 +1,2 @@
 
-* If an image is selected in the WYSIWYG, let it be edited directly
-* Improve interactivity after "creating" a new image so that it is automatically listed in the image list
+* If an image is selected in the WYSIWYG or image selection form, let it be edited directly

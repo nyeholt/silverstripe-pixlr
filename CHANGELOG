@@ -3,6 +3,8 @@
 * Newly created images automatically selected after saving
 * Updated 'add image' text and graphic
 * Allow users to cancel a save or edit
+* When a user clicks 'add image', the current folder is used as the default
+  save point for that image when the user comes to save the new image later. 
 
 2010-03-09
 ----------

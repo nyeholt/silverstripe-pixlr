@@ -134,18 +134,21 @@ class PixlrController extends Controller
 				$fields->push(new HiddenField('type', 'Type', $request['type']));
 				$fields->push(new HiddenField('state', 'State', $request['state']));
 
-				// if the state is 'new', then need to make sure there's not another item with the same name
+				// if the state is 'new', then need to check whatever parent the user selected
+				// to make sure there's not another item with the same name
 				// if so, the user MUST change it, otherwise it'll overwrite the existing image
+
 				$parent = isset($request['parent']) ? $request['parent'] : 0;
 				
 				$fname = $request['title'].'.'.$request['type'];
 				
 				$existing = null;
-				// only check for a parent if we've actually selected to save somewhere
+				// only check for an existing item in a parent if we've already selected to save somewhere
 				if ($parent) {
 					$existing = $this->getExistingImage($fname, $parent);
-					$fields->removeByName('parent');
-					$fields->push(new HiddenField('parent', 'ParentID', $parent));
+						$tree = $fields->fieldByName('parent');
+					$tree->setValue($parent);
+					// $fields->push(new HiddenField('parent', 'ParentID', $parent));
 				} else {
 
 				}
@@ -193,8 +196,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 			return $this->saveimage($request);
 		}
 
-
-		$data = array('ParentID' => 0);
+		$data = array();
 		
 		if ($request['parent'] && isset($request['image'])) {
 			// get the content and store it in the appropriate place in the assets
@@ -202,9 +204,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 
 			$folder = DataObject::get_by_id('Folder', $request['parent']);
 			if ($folder->ID) {
-				$data['ParentID'] = $folder->ID;
 				$fname = $request['title'].'.'.$request['type'];
-
 				$existing = $this->getExistingImage($fname, $request['parent']);
 
 				// if it exists, and it's a NEW image, then we don't allow creation
@@ -310,7 +310,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 	protected function getExistingImage($fname, $parent=0)
 	{
 		$filter = '"Name" = \''.Convert::raw2sql($fname)."'";
-		$filter .= $parent ? ' AND "ParentID" = \''.$parent.'\'' : '';
+		$filter .= $parent ? ' AND "ParentID" = '. (int) $parent : '';
 
 		$existing = DataObject::get_one('Image', $filter);
 		return $existing;

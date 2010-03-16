@@ -39,10 +39,9 @@
 					}
 				}
 
-				// refreshAndClose();
+				refreshAndClose();
 
 			</script>
-			<input type="button" onclick="refreshAndClose()" value="CLCI" />
 		</div>
 	</body>
 </html>

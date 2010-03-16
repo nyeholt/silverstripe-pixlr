@@ -1,7 +1,10 @@
 
 body.pixlrPage { margin: 0; background: #606060; font-family: Arial, sans-serif }
 
-.pixlrPage form { width: 60%; margin: 3em auto; background: #fff; }
+.pixlrPage #PixlrDetails { width: 50%; margin: 30px auto; min-height: 60%; padding: 2em; font-size: 12px; background: #fff;}
+.pixlrPage #PixlrDetails { -moz-border-radius: 10px; -webkit-border-radius: 10px; -moz-box-shadow: 2px 2px 5px #222; -webkit-box-shadow: 2px 2px 5px #222; }
+
+.pixlrPage form { width: 60%; margin: 3em auto; }
 .pixlrPage fieldset { border: 0}
 .pixlrPage div { clear: both; margin-bottom: 1em}
 #PixlrDetails div.TreeDropdownField { width: 331px; }

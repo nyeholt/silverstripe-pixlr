@@ -204,7 +204,9 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 
 			$folder = DataObject::get_by_id('Folder', $request['parent']);
 			if ($folder->ID) {
-				$fname = $request['title'].'.'.$request['type'];
+				// need to str replace things for Silverstripe's sake
+				$fname = str_replace(' ', '-', $request['title'].'.'.$request['type']);
+				$title = $request['title'];
 				$existing = $this->getExistingImage($fname, $request['parent']);
 
 				// if it exists, and it's a NEW image, then we don't allow creation
@@ -242,7 +244,8 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 					$existing = object::create('Image');
 					$existing->ParentID = $folder->ID;
 					$existing->Filename = $folder->Filename.'/'.$fname;
-					$existing->Name = $image->Title = $fname;
+					$existing->Name = $fname;
+					$image->Title = $title;
 
 					// save the image
 					$existing->write();

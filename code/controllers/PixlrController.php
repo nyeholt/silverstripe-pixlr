@@ -125,7 +125,7 @@ class PixlrController extends Controller
 			$editKey = isset($request['transaction']) ? $request['transaction'] : 0;
 			$existEdit = null;
 			if ($editKey) {
-				$existEdit = DataObject::get_one('Image', db_quote(array('TransactionKey =' => $editKey)));
+				$existEdit = DataObject::get_one('Image', singleton('PixlrUtils')->quote(array('TransactionKey =' => $editKey)));
 			}
 
 			if ($request['state'] == 'new' || !$existEdit || !$existEdit->ID) {
@@ -186,7 +186,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 	 * Store an image within silverstripe. This is triggered either
 	 * by the "create new" form, or passed on directly from the pixlr
 	 * application
-	 *
+	 * 
 	 * @param array $request
 	 * @return String
 	 */

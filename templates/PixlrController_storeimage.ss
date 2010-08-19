@@ -23,7 +23,7 @@
 							var folderList = parentWindow.find('#FolderImages');
 							if (folderList.length) {
 								var folderListElem = folderList[0];
-								folderListElem.ajaxGetFiles($Parent.ID, '$Image.Name.JS', function () {
+								folderListElem.ajaxGetFiles('$Image.Parent.ID', '$Image.Name.JS', function () {
 									// so in that method it does a behaviour application, so we do
 									// that
 									folderListElem.reapplyBehaviour.bind(folderListElem).call();

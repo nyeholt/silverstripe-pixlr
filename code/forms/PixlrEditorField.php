@@ -115,9 +115,11 @@ class PixlrEditorField extends FormField
 			$sep = '&';
 		}
 
+		$loc = ($m = Member::currentUser()) ? i18n::get_lang_from_locale($m->Locale) : 'en';
+		
 		$opts = array(
 			'referrer' => Convert::raw2js('SilverStripe CMS'),
-			// 'loc' => Member::currentUser()->
+			'loc' => $loc,
 			'title' => $this->value ? Convert::raw2js($this->value->Name) : 'New Image',
 			'locktarget' => 'true',
 			'exit' => $exitUrl,

@@ -1,3 +1,13 @@
+2010-08-19
+----------
+
+* Fixed three bugs reported by "Axyr". See 
+  http://github.com/nyeholt/silverstripe-pixlr/issues for details, but 
+  * Added lang files for Dutch and English to CMS
+  * Sent lang details to Pixlr
+  * Fixed bug where pixlr doesn't properly close the launching container
+
+
 2010-03-16
 ----------
 * Newly created images automatically selected after saving

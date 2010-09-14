@@ -1,3 +1,8 @@
+2010-09-14 v1.1
+----------
+* Fixed bug where lang folder wasn't in the correct location
+* Added nb_NO translation (thanks Fremmedkar)
+
 2010-08-19
 ----------
 

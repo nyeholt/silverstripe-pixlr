@@ -1,3 +1,8 @@
+2010-10-18 v1.0.1
+----------
+* Removed obsolete support library
+* Minor fix to ensure forced casing of request params to int before being used in queries
+
 2010-09-14 v1.0
 ----------
 * Fixed bug where lang folder wasn't in the correct location

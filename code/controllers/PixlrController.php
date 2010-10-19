@@ -80,7 +80,7 @@ class PixlrController extends Controller
 			throw new Exception("Invalid image ID");
 		}
 
-		$file = DataObject::get_by_id('Image', $request['ID']);
+		$file = DataObject::get_by_id('Image', (int) $request['ID']);
 
 		if ($file && $file->ID) {
 			include_once 'Zend/Http/Client.php';
@@ -125,7 +125,7 @@ class PixlrController extends Controller
 			$editKey = isset($request['transaction']) ? $request['transaction'] : 0;
 			$existEdit = null;
 			if ($editKey) {
-				$existEdit = DataObject::get_one('Image', db_quote(array('TransactionKey =' => $editKey)));
+				$existEdit = DataObject::get_one('Image', singleton('PixlrUtils')->dbQuote(array('TransactionKey =' => $editKey)));
 			}
 
 			if ($request['state'] == 'new' || !$existEdit || !$existEdit->ID) {
@@ -202,7 +202,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 			// get the content and store it in the appropriate place in the assets
 			// folder, then run a sync on that folder
 
-			$folder = DataObject::get_by_id('Folder', $request['parent']);
+			$folder = DataObject::get_by_id('Folder', (int) $request['parent']);
 			if ($folder->ID) {
 				// need to str replace things for Silverstripe's sake
 				$fname = str_replace(' ', '-', $request['title'].'.'.$request['type']);

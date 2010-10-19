@@ -1,7 +1,8 @@
-2010-10-18 v1.0.1
+2010-10-18 v1.0.2
 ----------
 * Removed obsolete support library
 * Minor fix to ensure forced casing of request params to int before being used in queries
+* Added check for pixlr installation directory name
 
 2010-09-14 v1.0
 ----------

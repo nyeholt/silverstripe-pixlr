@@ -21,7 +21,13 @@ OF SUCH DAMAGE.
 */
 
 /**
- * 
+ * Decorator that attaches an edit button to images when displayed in the
+ * Files & Images section of the website
+ *
+ * Note that this decorator is actually attached to File objects; this is to
+ * provide support for the DataObjectManager module, which doesn't
+ * explicitly provide support for Image classes. Hence, we have to
+ * add to all files and catch whether it's an image or not here. 
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */
@@ -38,25 +44,44 @@ class PixlrImageDecorator extends DataObjectDecorator
 			)
 		);
 	}
-	public function updateCMSFields($fields)
+	public function updateCMSFields(FieldSet $fields)
 	{
+		
+		if (!$this->owner instanceof Image) {
+			return;
+		}
 
-		// okay, because we're editing, we want to make sure that our editing transaction is sane - if someone else
-		// starts editing after us, the user is instead prompted to save imagename.TRANSACTIONID.ext. This works around
-		// the problem of locking images whereby we need a way to maintain the lock, even if that edit takes
-		// a long long time. Also, it lets other people edit at the same time, so that even if we overwrite each,
-		// other's work, both people are made aware of it, and a consistent version history is maintained.
-		// Be aware that this transaction key is added BEFORE we actually use pixlr, but if we don't end up using it,
-		// it doesn't matter. It is ALWAYS overridden by the next user to attempt to edit, and just prompts the user
-		// when they return to silverstripe that someone else has edited in the meantime. It's up to the user then
-		// to decide to overwrite (which is fine, if versioning is enabled) or save as a differently named file
-		$this->owner->TransactionKey = md5(Member::currentUserID().time());
-		$this->owner->write();
+		$tab = 'BottomRoot.Image';
 
-		$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey);
+		$root = $fields->findOrMakeTab('BottomRoot.Image');
 
-		$fields->addFieldToTab('BottomRoot.Image', new PixlrEditorField('PixlrButton', 'Edit this image', $this->owner, $params));
+		if ($root) {
+			// okay, because we're editing, we want to make sure that our editing transaction is sane - if someone else
+			// starts editing after us, the user is instead prompted to save imagename.TRANSACTIONID.ext. This works around
+			// the problem of locking images whereby we need a way to maintain the lock, even if that edit takes
+			// a long long time. Also, it lets other people edit at the same time, so that even if we overwrite each,
+			// other's work, both people are made aware of it, and a consistent version history is maintained.
+			// Be aware that this transaction key is added BEFORE we actually use pixlr, but if we don't end up using it,
+			// it doesn't matter. It is ALWAYS overridden by the next user to attempt to edit, and just prompts the user
+			// when they return to silverstripe that someone else has edited in the meantime. It's up to the user then
+			// to decide to overwrite (which is fine, if versioning is enabled) or save as a differently named file
+			$this->owner->TransactionKey = md5(Member::currentUserID().time());
+			$this->owner->write();
 
+			$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey);
+
+			$fields->addFieldToTab('BottomRoot.Image', new PixlrEditorField('PixlrButton', 'Edit this image', $this->owner, $params));
+		} else {
+			$tab = $fields->findOrMakeTab('Root.Image');
+			// create a temp thing to handle the DOM
+			$formattedImage = $this->owner->getFormattedImage('AssetLibraryPreview');
+			$thumbnail = $formattedImage ? $formattedImage->URL : '';
+			$tab->push(
+				new LiteralField("ImageFull",
+					"<img id='thumbnailImage' src='{$thumbnail}?r=" . rand(1,100000)  . "' alt='{$this->owner->Name}' />"
+				)
+			);
+		}
 	}
 
 	/**

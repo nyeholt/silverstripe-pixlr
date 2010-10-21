@@ -16,7 +16,7 @@
 				} else {
 					pframe[0].src = pframe[0].src;
 				}
-				//window.parent.pixlr.overlay.hide();
+				window.parent.pixlr.overlay.hide();
 			} else {
 				// we might have to refresh the FolderID tree...
 				var folderList = parentWindow.find('#FolderImages');
@@ -27,10 +27,10 @@
 						// that
 						folderListElem.reapplyBehaviour.bind(folderListElem).call();
 						$(folderListElem).find('a[title="$Image.Title.JS"]').click();
-						//window.parent.pixlr.overlay.hide();
+						window.parent.pixlr.overlay.hide();
 					});
 				} else {
-					//window.parent.pixlr.overlay.hide();
+					window.parent.pixlr.overlay.hide();
 				}
 			}
 		} else if (window.opener) {

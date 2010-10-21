@@ -51,7 +51,7 @@ class PixlrImageDecorator extends DataObjectDecorator
 
 		$tabName = 'BottomRoot.Image';
 
-		$root = $fields->getField($tabName);
+		$root = $fields->fieldByName($tabName);
 
 		if (!$root) {
 			$tab = $fields->findOrMakeTab('Root.Image');

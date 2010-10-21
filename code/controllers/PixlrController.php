@@ -156,7 +156,7 @@ class PixlrController extends Controller
 				if ($editKey || ($existing && $existing->ID)) {
 					if ($editKey) {
 						$txt = 'It looks like someone else has edited the image since you started. You can choose to
-save using the same name, but be aware that they may override this image later (they will also receive this image
+save using the same name, but be aware that they may override this image later (they will also receive this warning
 when they attempt to save). Otherwise, choose a new name and re-edit the image later';
 						$msg = '<div class="error"><p>'._t('Pixlr.INVALID_TRANSACTION', $txt).'</p></div>';
 					} else {

@@ -21,7 +21,7 @@ OF SUCH DAMAGE.
 */
 
 /**
- * 
+ * An extension that hooks the pixlr editor into the image editing toolbar
  *
  * @author Marcus Nyeholt <marcus@silverstripe.com.au>
  */

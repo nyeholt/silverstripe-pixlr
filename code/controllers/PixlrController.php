@@ -115,7 +115,7 @@ class PixlrController extends Controller
 		
 		$fields = $form->Fields();
 		
-		if (isset($request['image']) && isset($request['state'])) {
+		if (isset($request['image']) && isset($request['imgstate'])) {
 			// see if there's a transaction key to be used, because if the
 			// key is different, then we want the user to be prompted to
 			// save the file somewhere else instead. This displays the form
@@ -128,13 +128,13 @@ class PixlrController extends Controller
 				$existEdit = DataObject::get_one('Image', singleton('PixlrUtils')->dbQuote(array('TransactionKey =' => $editKey)));
 			}
 
-			if ($request['state'] == 'new' || !$existEdit || !$existEdit->ID) {
+			if ($request['imgstate'] == 'new' || !$existEdit || !$existEdit->ID) {
 				// ?image=http://pixlr.com/_temp/4b544f161fd83.jpg&type=jpg&state=new&title=Untitled
 				$fields->push(new HiddenField('image', 'Image', $request['image']));
 				$fields->push(new HiddenField('type', 'Type', $request['type']));
-				$fields->push(new HiddenField('state', 'State', $request['state']));
+				$fields->push(new HiddenField('imgstate', 'State', $request['imgstate']));
 
-				// if the state is 'new', then need to check whatever parent the user selected
+				// if the imgstate is 'new', then need to check whatever parent the user selected
 				// to make sure there's not another item with the same name
 				// if so, the user MUST change it, otherwise it'll overwrite the existing image
 
@@ -210,7 +210,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 				$existing = $this->getExistingImage($fname, $request['parent']);
 
 				// if it exists, and it's a NEW image, then we don't allow creation
-				if ($existing && $request['state'] == 'new') {
+				if ($existing && $request['imgstate'] == 'new') {
 					return $this->saveimage($request);
 				}
 
@@ -264,7 +264,6 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 				$data['Image'] = $existing;
 			}
 		}
-
 
 		return $this->customise($data)->renderWith('PixlrController_storeimage');
 	}

@@ -7,6 +7,11 @@
 	</head>
 	<body class="pixlrPage">
 		<div id="PixlrDetails">
+			<script type="text/javascript">
+				$().ready(function () {
+					refreshAndClose('$Image.Parent.ID', '$Image.Name.JS', '$Image.Title.JS');
+				})
+			</script>
 		</div>
 	</body>
 </html>

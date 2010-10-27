@@ -80,7 +80,7 @@ class PixlrImageDecorator extends DataObjectDecorator
 		$this->owner->TransactionKey = md5(Member::currentUserID().time());
 		$this->owner->write();
 
-		$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey);
+		$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey, 'imgstate' => 'existing');
 
 		$fields->removeByName('TransactionKey');
 		$fields->addFieldToTab($tabName, new PixlrEditorField('PixlrButton', _t('Pixlr.EDIT_IMAGE', 'Edit this image'), $this->owner, $params));

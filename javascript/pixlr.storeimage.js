@@ -1,6 +1,6 @@
 
 (function ($) {
-	function refreshAndClose() {
+	window.refreshAndClose = function (imageParent, imageName, imageTitle) {
 		if (window.parent && window.parent.pixlr) {
 			// now, figure out what we need to refresh based on what may be onscreen
 			var parentWindow = $(window.parent.document);
@@ -22,11 +22,11 @@
 				var folderList = parentWindow.find('#FolderImages');
 				if (folderList.length) {
 					var folderListElem = folderList[0];
-					folderListElem.ajaxGetFiles('$Image.Parent.ID', '$Image.Name.JS', function () {
+					folderListElem.ajaxGetFiles(imageParent, imageName, function () {
 						// so in that method it does a behaviour application, so we do
 						// that
 						folderListElem.reapplyBehaviour.bind(folderListElem).call();
-						$(folderListElem).find('a[title="$Image.Title.JS"]').click();
+						$(folderListElem).find('a[title="'+imageTitle+'"]').click();
 						window.parent.pixlr.overlay.hide();
 					});
 				} else {
@@ -38,7 +38,4 @@
 		}
 	}
 
-	$().ready(function () {
-		refreshAndClose();
-	})
 })(jQuery);

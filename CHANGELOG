@@ -1,3 +1,9 @@
+2010-10-27 v1.0.4
+-----------------
+
+* Update to support change in Pixlr api that stopped sending the 'state' var
+  through on the edit finish request
+
 2010-10-21 v1.0.3
 -----------------
 

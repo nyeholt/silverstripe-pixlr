@@ -154,4 +154,3 @@ class PixlrImageDecorator extends DataObjectDecorator
 		}
 	}
 }
-?>

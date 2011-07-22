@@ -117,10 +117,12 @@ class PixlrEditorField extends FormField
 
 		$loc = ($m = Member::currentUser()) ? i18n::get_lang_from_locale($m->Locale) : 'en';
 		
+		$title = isset($this->returnParams['title']) ? $this->returnParams['title'] : 'New Image';
+		
 		$opts = array(
 			'referrer' => Convert::raw2js('SilverStripe CMS'),
 			'loc' => $loc,
-			'title' => $this->value ? Convert::raw2js($this->value->Name) : 'New Image',
+			'title' => $this->value && is_object($this->value) ? Convert::raw2js($this->value->Name) : $title,
 			'locktarget' => 'true',
 			'exit' => $exitUrl,
 			'target' => $targetUrl,
@@ -137,7 +139,12 @@ class PixlrEditorField extends FormField
 			} else {
 				// need to post the image to their server first, so we'll stick the image ID into the
 				// page, and let the jquery plugin handle uploading it to pixlr first
-				$opts['id'] = $this->value->ID;
+				if (is_object($this->value)) {
+					$opts['id'] = $this->value->ID;
+				} else {
+					$opts['id'] = $this->value;
+				}
+
 				$opts['preload'] = Director::absoluteURL('pixlr/sendimage');
 
 				// In silverstripe, when editing an image it actually occurs in an iframe popup contained within
@@ -147,7 +154,6 @@ class PixlrEditorField extends FormField
 			}
 
 			$opts['locktitle'] = 'true';
-			
 			$opts['mode'] = 'popup';
 		}
 
@@ -162,9 +168,7 @@ jQuery('#{$this->id()}').pixlrize(opts);
 JSCRIPT;
 
 		Requirements::customScript($script, 'pixlr-'.$this->id());
-
 		return $this->createTag('input', $fieldAttributes);
 	}
 
 }
-?>

@@ -38,6 +38,7 @@ class PixlrController extends Controller
 		'saveimage',
 		'closepixlr',
 		'sendimage',
+		'saveappletupload',
 	);
 
 	public static $allowed_hosts = array(
@@ -301,6 +302,25 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 		return $this->renderWith('PixlrController_storeimage');
 	}
 
+	public function saveappletupload($request) {
+		$location = (int) $request->postVar('Location');
+		if ($location) {
+			$folder = DataObject::get_by_id('Folder', $location);
+			if (isset($_FILES) && isset($_FILES['screenshot'])) {
+				$upload = new Upload;
+				if ($upload->load($_FILES['screenshot'], substr($folder->Filename, 7))) {
+					// need to base64decode the file data
+					$data = file_get_contents($upload->getFile()->getFullPath());
+					file_put_contents($upload->getFile()->getFullPath(), base64_decode($data));
+					
+					$upload->getFile()->ClassName = 'Image';
+					$upload->getFile()->write();
+					
+					return '{"file": '. Convert::raw2json($upload->getFile()->toMap()).'}';
+				}
+			}
+		}
+	}
 
 	/**
 	 * Determine whether an image exists or not
@@ -317,6 +337,6 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 		$existing = DataObject::get_one('Image', $filter);
 		return $existing;
 	}
+	
 
 }
-?>

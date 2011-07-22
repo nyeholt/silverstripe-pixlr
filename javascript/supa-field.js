@@ -16,56 +16,67 @@
 			})
 		})
 		
+		
+		function handlePaste(context) {
+			var field = $(context).parents('div.supaField');
+			var s = new supa();
+			// Call the paste() method of the applet.
+			// This will paste the image from the clipboard into the applet :)
+			try {
+				var applet = field.find('applet')[0];
+				if(!s.ping( applet )) {
+					throw "No paste target available";
+				}
+				var err = applet.pasteFromClipboard(); 
+				switch( err ) {
+					case 0:
+						/* no error */
+						break;
+					case 1:
+						alert( "Unknown Error" );
+						break;
+					case 2:
+						alert( "Empty clipboard" );
+						break;
+					case 3:
+						alert( "Only image pasting is supported." );
+						break;
+					case 4:
+						alert("Clipboard in use by another application. Please try again in a few seconds." );
+						break;
+					default:
+						alert( "Unknown error code: "+err );
+				}
+
+				$(context).parent().siblings('.supaOptions').show();
+				$(context).siblings('.supaUploadButton').show();
+				field.find('input[name=SupaImageName]').focus();
+				$(applet).attr(originalScale);
+			} catch( e ) {
+				alert(e);
+				throw e;
+			}
+		}
+		
 		$('.supaPasteButton').livequery(function () {
 			$(this).click(function (e) {
 				e.preventDefault();
-				var field = $(this).parents('div.supaField');
-				var s = new supa();
-				// Call the paste() method of the applet.
-				// This will paste the image from the clipboard into the applet :)
-				try {
-					var applet = field.find('applet')[0];
-
-					if(!s.ping( applet )) {
-						throw "SupaApplet is not loaded (yet)";
-					}
-
-					var err = applet.pasteFromClipboard(); 
-					switch( err ) {
-						case 0:
-							/* no error */
-							break;
-						case 1:
-							alert( "Unknown Error" );
-							break;
-						case 2:
-							alert( "Empty clipboard" );
-							break;
-						case 3:
-							alert( "Only image pasting is supported." );
-							break;
-						case 4:
-							alert("Clipboard in use by another application. Please try again in a few seconds." );
-							break;
-						default:
-							alert( "Unknown error code: "+err );
-					}
-
-					$(this).parent().siblings('.supaOptions').show();
-					$(this).siblings('.supaUploadButton').show();
-					$(applet).attr(originalScale);
-				} catch( e ) {
-					alert(e);
-					throw e;
-				}
+				handlePaste(this);
 			})
 		})
 		
+		$(document).keydown(function (e) {
+			if (e.which == 86 && e.ctrlKey && e.shiftKey) {
+				handlePaste('#Form_EditorToolbarImageForm .supaPasteButton');
+			}
+		})
 
 		$('.supaUploadButton').livequery(function () {
 			$(this).click(function (e) {
 				e.preventDefault();
 				var field = $(this).parents('div.supaField');
+				$(this).attr('disabled', 'disabled');
+				
 				// Get the base64 encoded data from the applet and POST it via an AJAX 
 				// request. See the included Supa.js for details
 				var s = new supa();
@@ -103,6 +114,7 @@
 					if (result) {
 						var response = $.parseJSON(result);
 						if (response && response.file) {
+							applet.clear();
 							// successfully uploaded, should we go and edit now?
 							var folderList = $('#FolderImages');
 							field.parents('form').find('input[name=FolderID]').val(location);
@@ -137,6 +149,8 @@
 						alert( ex );
 					}
 				}
+
+				$(this).removeAttr('disabled');
 			});
 		})
 

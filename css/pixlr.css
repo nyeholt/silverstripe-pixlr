@@ -14,7 +14,6 @@ body.pixlrPage { margin: 0; background: #606060; font-family: Arial, sans-serif 
 
 .pixlrTrigger { height: 24px; padding-right: 20px; background: transparent url(../images/pixlr.gif) 96% no-repeat;}
 
-
 .supaField .pixlrTrigger {
 	display: none;
 }

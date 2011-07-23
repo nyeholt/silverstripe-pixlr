@@ -129,7 +129,8 @@ class PixlrController extends Controller
 				$existEdit = DataObject::get_one('Image', singleton('PixlrUtils')->dbQuote(array('TransactionKey =' => $editKey)));
 			}
 
-			if ($request['imgstate'] == 'new' || !$existEdit || !$existEdit->ID) {
+			if (($request['imgstate'] == 'new' || !$existEdit || !$existEdit->ID) 
+					&& !($request['imgstate'] == 'existing' && isset($request['force']))) {
 				// ?image=http://pixlr.com/_temp/4b544f161fd83.jpg&type=jpg&state=new&title=Untitled
 				$fields->push(new HiddenField('image', 'Image', $request['image']));
 				$fields->push(new HiddenField('type', 'Type', $request['type']));
@@ -138,11 +139,10 @@ class PixlrController extends Controller
 				// if the imgstate is 'new', then need to check whatever parent the user selected
 				// to make sure there's not another item with the same name
 				// if so, the user MUST change it, otherwise it'll overwrite the existing image
-
 				$parent = isset($request['parent']) ? $request['parent'] : 0;
-				
+
 				$fname = $request['title'].'.'.$request['type'];
-				
+
 				$existing = null;
 				// only check for an existing item in a parent if we've already selected to save somewhere
 				if ($parent) {
@@ -161,7 +161,7 @@ save using the same name, but be aware that they may override this image later (
 when they attempt to save). Otherwise, choose a new name and re-edit the image later';
 						$msg = '<div class="error"><p>'._t('Pixlr.INVALID_TRANSACTION', $txt).'</p></div>';
 					} else {
-						$msg = '<div class="error"><p>'._t('Pixlr.EXISTING_FILE', 'That file already exists - please choose another name').'</p></div>';
+						$msg = '<div class="error"><p>'._t('Pixlr.EXISTING_FILE', $request['imgstate'] . ' That file already exists - please choose another name').'</p></div>';
 					}
 					if ($editKey) {
 						$fname = $request['title'].'.'.$editKey;

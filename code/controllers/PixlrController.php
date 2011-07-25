@@ -161,7 +161,7 @@ save using the same name, but be aware that they may override this image later (
 when they attempt to save). Otherwise, choose a new name and re-edit the image later';
 						$msg = '<div class="error"><p>'._t('Pixlr.INVALID_TRANSACTION', $txt).'</p></div>';
 					} else {
-						$msg = '<div class="error"><p>'._t('Pixlr.EXISTING_FILE', 'That file already exists - please choose another name').'</p></div>';
+						$msg = '<div class="error"><p>'._t('Pixlr.EXISTING_FILE', $request['imgstate'] . ' That file already exists - please choose another name').'</p></div>';
 					}
 					if ($editKey) {
 						$fname = $request['title'].'.'.$editKey;

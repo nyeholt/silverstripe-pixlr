@@ -22,7 +22,6 @@ class SupaImagePasteField extends FormField {
 	}
 
 	public function Field() {
-		
 		Requirements::javascript(THIRDPARTY_DIR . '/jquery-livequery/jquery.livequery.js');
 		Requirements::javascript('pixlr/thirdparty/supa/Supa.js');
 		Requirements::javascript('pixlr/javascript/supa-field.js');

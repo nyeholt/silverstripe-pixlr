@@ -20,12 +20,14 @@ class SupaImagePasteField extends FormField {
 		$this->options = array_merge($this->options, $options);
 		parent::__construct($name, $title, $value);
 	}
-	
+
 	public function Field() {
 		
 		Requirements::javascript(THIRDPARTY_DIR . '/jquery-livequery/jquery.livequery.js');
 		Requirements::javascript('pixlr/thirdparty/supa/Supa.js');
 		Requirements::javascript('pixlr/javascript/supa-field.js');
+		
+		Requirements::css('pixlr/css/pixlr.css');
 		
 		$id = $this->id();
 		$div = '<div id="'.$id.'Container" class="'.$this->extraClass().' supaField">';
@@ -59,10 +61,9 @@ class SupaImagePasteField extends FormField {
 			'type'			=> 'hidden',
 			'value'			=> '',
 		));
-		
+
 		$div .= '</div><div class="supaOptions" style="display: none">';
-		
-		
+
 		if ($this->options['show_selector']) {
 			$treeField = new TreeDropdownField('SupaLocation', _t('Pixlr.UPLOAD_LOCATION', 'Save to'), 'File');
 			$div .= $treeField->Field();
@@ -82,12 +83,12 @@ class SupaImagePasteField extends FormField {
 			'name'		=> 'SupaImageName',
 		));
 
-		$params = array('parent' => '{input[name=FolderID]}', 'imgstate' => 'existing', 'title' => '{#'.$id.'Filename}.png');
+		$params = array('parent' => '{input[name=FolderID]}', 'force' => true, 'imgstate' => 'existing', 'title' => '{#'.$id.'Filename}.png');
 		$pixlr = new PixlrEditorField('EditSelectedImage'.$id, _t('Pixlr.EDIT_SELECTED', 'Edit Selected'), '{#'.$id.'Container .supaFileID}', $params);
-		
+
 		$div .= $pixlr->Field();
 		
-		$div .= '</div><div class="supaAppletWrapper" id="'.$id.'AppletWrapper">';
+		$div .= '</div><div class="supaFileUrl"></div><div class="supaAppletWrapper" id="'.$id.'AppletWrapper">';
 		
 		$url = Director::baseURL() .'/pixlr/thirdparty/supa/Supa.jar';
 		$div .= '<applet id="'.$id.'Applet" class="supaApplet"

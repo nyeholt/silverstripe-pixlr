@@ -27,6 +27,7 @@
 				if(!s.ping( applet )) {
 					throw "No paste target available";
 				}
+
 				var err = applet.pasteFromClipboard(); 
 				switch( err ) {
 					case 0:
@@ -117,6 +118,10 @@
 							applet.clear();
 							// successfully uploaded, should we go and edit now?
 							var folderList = $('#FolderImages');
+							if (!field.parents('form').find('input[name=FolderID]').length) {
+								// make sure this field exists...
+								field.parents('form').append('<input name="FolderID" type="hidden" />');
+							}
 							field.parents('form').find('input[name=FolderID]').val(location);
 							if (folderList.length) {
 								var folderListElem = folderList[0];
@@ -127,10 +132,10 @@
 									$(folderListElem).find('a[title="'+response.file.Title+'"]').click();
 								});
 							}
-							
+
 							// store the newly created file ID
 							field.find('.supaFileID').val(response.file.ID);
-
+							field.find('.supaFileUrl').html('<a class="newFileUrl" href="'+response.file.Filename+'" target="_blank">'+response.file.Name+'</a>');
 							if (field.find('input[name=AndEdit]').is(':checked')) {
 								field.find('.pixlrTrigger').click();
 							} else {

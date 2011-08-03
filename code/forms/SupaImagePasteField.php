@@ -89,7 +89,7 @@ class SupaImagePasteField extends FormField {
 		
 		$div .= '</div><div class="supaFileUrl"></div><div class="supaAppletWrapper" id="'.$id.'AppletWrapper">';
 		
-		$url = Director::baseURL() .'/pixlr/thirdparty/supa/Supa.jar';
+		$url = Director::absoluteBaseURL() .'pixlr/thirdparty/supa/Supa.jar';
 		$div .= '<applet id="'.$id.'Applet" class="supaApplet"
               archive="'.$url.'"
               code="de.christophlinder.supa.SupaApplet" 

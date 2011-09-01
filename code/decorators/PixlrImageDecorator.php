@@ -54,18 +54,29 @@ class PixlrImageDecorator extends DataObjectDecorator
 		$root = $fields->fieldByName($tabName);
 
 		if (!$root) {
-			$tab = $fields->findOrMakeTab('Root.Image');
-			// create a temp thing to handle the DOM
-			$formattedImage = $this->owner->getFormattedImage('AssetLibraryPreview');
-			$thumbnail = $formattedImage ? $formattedImage->URL : '';
-			$tab->push(
-				new LiteralField("ImageFull",
-					"<img id='thumbnailImage' src='{$thumbnail}?r=" . rand(1,100000)  . "' alt='{$this->owner->Name}' />"
-				)
-			);
+			// see if we're in the DOM, otherwise we might be in KickAssets
+			if (class_exists('KickAssetAdmin')) {
+				$tabName = null;
+				$formattedImage = $this->owner->SetWidth(250);
+				$thumbnail = $formattedImage ? $formattedImage->URL : '';
+				$fields->push(
+					new LiteralField("ImageFull",
+						"<img id='thumbnailImage' src='{$thumbnail}?r=" . rand(1,100000)  . "' alt='{$this->owner->Name}' />"
+					)
+				);
+			} else {
+				$tab = $fields->findOrMakeTab('Root.Image');
+				// create a temp thing to handle the Data object manager 
+				$formattedImage = $this->owner->getFormattedImage('AssetLibraryPreview');
+				$thumbnail = $formattedImage ? $formattedImage->URL : '';
+				$tab->push(
+					new LiteralField("ImageFull",
+						"<img id='thumbnailImage' src='{$thumbnail}?r=" . rand(1,100000)  . "' alt='{$this->owner->Name}' />"
+					)
+				);
 
-			$tabName = 'Root.Image';
-			
+				$tabName = 'Root.Image';
+			}
 		}
 
 		// okay, because we're editing, we want to make sure that our editing transaction is sane - if someone else
@@ -83,7 +94,11 @@ class PixlrImageDecorator extends DataObjectDecorator
 		$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey, 'imgstate' => 'existing');
 
 		$fields->removeByName('TransactionKey');
-		$fields->addFieldToTab($tabName, new PixlrEditorField('PixlrButton', _t('Pixlr.EDIT_IMAGE', 'Edit this image'), $this->owner, $params));
+		if ($tabName) {
+			$fields->addFieldToTab($tabName, new PixlrEditorField('PixlrButton', _t('Pixlr.EDIT_IMAGE', 'Edit this image'), $this->owner, $params));
+		} else {
+			$fields->push(new PixlrEditorField('PixlrButton', _t('Pixlr.EDIT_IMAGE', 'Edit this image'), $this->owner, $params));
+		}
 	}
 
 	/**

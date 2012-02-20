@@ -95,7 +95,11 @@ class PixlrController extends Controller
 				throw new Exception("Failed uploading image: $result");
 			}
 
-			return self::$pixlr_temp_uri . $result;
+			if(strpos($result, 'http') === 0){
+				return $result;
+			}else{
+				return self::$pixlr_temp_uri . $result;
+			}
 		}
 	}
 
@@ -193,77 +197,81 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 	 */
 	public function storeimage($request)
 	{
-		if (!isset($request['parent']) || !$request['parent']) {
+		if (!isset($request['parent'])) {
 			return $this->saveimage($request);
 		}
 
 		$data = array();
 		
-		if ($request['parent'] && isset($request['image'])) {
+		if (isset($request['image'])) {
 			// get the content and store it in the appropriate place in the assets
 			// folder, then run a sync on that folder
 
-			$folder = DataObject::get_by_id('Folder', (int) $request['parent']);
-			if ($folder->ID) {
-				// need to str replace things for Silverstripe's sake
-				$fname = str_replace(' ', '-', $request['title'].'.'.$request['type']);
-				$title = $request['title'];
-				$existing = $this->getExistingImage($fname, $request['parent']);
+			$folder = (int) $request['parent'] ? DataObject::get_by_id('Folder', (int) $request['parent']) : null;
+			
+			// need to str replace things for Silverstripe's sake
+			$fname = str_replace(' ', '-', $request['title'].'.'.$request['type']);
+			$title = $request['title'];
+			$existing = $this->getExistingImage($fname, $request['parent']);
 
-				// if it exists, and it's a NEW image, then we don't allow creation
-				if ($existing && $request['imgstate'] == 'new') {
-					return $this->saveimage($request);
-				}
-
-				/* @var $folder Folder */
-				$path = $folder->getFullPath().$fname;
-
-				// @TODO Manually using CURL here to handle file downloads
-				// more efficiently, should probably swap to a correctly
-				// configured Zend_Http_Client
-				$session = curl_init($request['image']);
-				// get the file and store it into a local item
-				curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-				$response = curl_exec($session);
-				$fp = fopen($path, 'w');
-				if (!$fp) {
-					throw new Exception("Could not write file to $toFile");
-				}
-				fwrite($fp, $response);
-				fclose($fp);
-				curl_close($session);
-
-				// create a new image to represent the new file
-				// if there was an existing one, make sure to clean up
-				// its renditions
-				if ($existing && $existing instanceof Image) {
-					// empty the transaction key setting, as we're done
-					$existing->TransactionKey = '';
-				}
-
-				if (!$existing) {
-					$existing = object::create('Image');
-					$existing->ParentID = $folder->ID;
-					$existing->Filename = $folder->Filename.'/'.$fname;
-					$existing->Name = $fname;
-					$image->Title = $title;
-
-					// save the image
-					$existing->write();
-				} else {
-					// make sure to version it if the extension exists... This will
-					// regenerate all renditions for us too 
-					if ($existing->hasField('CurrentVersionID')) {
-						$existing->createVersion();
-					} else {
-						$existing->regenerateFormattedImages();
-						$existing->write();
-					}
-				}
-
-				$data['Parent'] = $folder;
-				$data['Image'] = $existing;
+			// if it exists, and it's a NEW image, then we don't allow creation
+			if ($existing && $request['imgstate'] == 'new') {
+				return $this->saveimage($request);
 			}
+
+			/* @var $path */
+			if($folder){
+				$path = $folder->getFullPath() . $fname;
+			}else{
+				$path = ASSETS_PATH . '/' . $fname;
+			}
+
+			// @TODO Manually using CURL here to handle file downloads
+			// more efficiently, should probably swap to a correctly
+			// configured Zend_Http_Client
+			$session = curl_init($request['image']);
+			// get the file and store it into a local item
+			curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+			$response = curl_exec($session);
+			$fp = fopen($path, 'w');
+			if (!$fp) {
+				throw new Exception("Could not write file to $toFile");
+			}
+			fwrite($fp, $response);
+			fclose($fp);
+			curl_close($session);
+
+			// create a new image to represent the new file
+			// if there was an existing one, make sure to clean up
+			// its renditions
+			if ($existing && $existing instanceof Image) {
+				// empty the transaction key setting, as we're done
+				$existing->TransactionKey = '';
+			}
+
+			if (!$existing) {
+				$existing = object::create('Image');
+				$existing->ParentID = $folder->ID;
+				$existing->Filename = $folder->Filename.'/'.$fname;
+				$existing->Name = $fname;
+				$image->Title = $title;
+
+				// save the image
+				$existing->write();
+			} else {
+				// make sure to version it if the extension exists... This will
+				// regenerate all renditions for us too 
+				if ($existing->hasField('CurrentVersionID')) {
+					$existing->createVersion();
+				} else {
+					$existing->regenerateFormattedImages();
+					$existing->write();
+				}
+			}
+
+			$data['Parent'] = $folder;
+			$data['Image'] = $existing;
+			
 		}
 
 		return $this->customise($data)->renderWith('PixlrController_storeimage');

@@ -120,7 +120,7 @@ class PixlrImageDecorator extends DataObjectDecorator
 		$iterator = new ArrayIterator($files);
 		$filter   = new RegexIterator (
 			$iterator,
-			sprintf("/(?<method>[a-zA-Z]+)(?<arguments>[0-9]*)-%s/", preg_quote($this->owner->Name)),
+			sprintf("/([a-zA-Z]+)([0-9]*)-%s/", preg_quote($this->owner->Name)),
 			RegexIterator::GET_MATCH
 		);
 
@@ -131,8 +131,8 @@ class PixlrImageDecorator extends DataObjectDecorator
 				continue;
 			}
 			$size      = getimagesize($path);
-			$method    = $cachedImage['method'];
-			$arguments = $cachedImage['arguments'];
+			$method    = $cachedImage[1];
+			$arguments = $cachedImage[2];
 
 			unlink($path);
 

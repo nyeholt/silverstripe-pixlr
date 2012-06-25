@@ -1,3 +1,9 @@
+
+2012-06-25 v1.1.1
+-----------------
+
+* Removed php upload script from thirdparty dependency
+
 2011-07-22 v1.1.0
 -----------------
 

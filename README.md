@@ -1,5 +1,12 @@
 # Pixlr Image Editor Module
 
+# IMPORTANT SECURITY NOTE
+
+A third party code library used by this module allowed arbitrary file 
+uploads; this was introduced in July 2011 and reported and fixed June 
+25th 2012. If you are using a code release from this window of time, 
+PLEASE update. 
+
 ## Maintainer Contact
 
 Marcus Nyeholt <marcus (at) silverstripe (dot) com (dot) au>

@@ -1,0 +1,25 @@
+{
+	"name": "silverstripe-australia/silverstripe-pixlr",
+	"description": "A module for editing images via Pixlr.",
+	"type": "silverstripe-module",
+	"keywords": [
+		"silverstripe",
+		"images",
+		"pixlr"
+	],
+	"homepage": "https://github.com/nyeholt/silverstripe-pixlr",
+	"license": "BSD-3-Clause",
+	"authors": [{
+		"name": "Marcus Nyeholt",
+		"email": "marcus@silverstripe.com.au"
+	}],
+	"require": {
+		"silverstripe/cms": "~3.1"
+	},
+	"extra": {
+		"installer-name": "pixlr",
+		"branch-alias": {
+			"dev-master": "2.0.x-dev"
+		}
+	}
+}

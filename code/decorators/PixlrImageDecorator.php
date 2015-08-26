@@ -24,8 +24,14 @@ class PixlrImageDecorator extends DataExtension
 
 		$tabName = 'Root.Main';
 
+		$fields->removeByName('TransactionKey');
 
 
+		
+		$fields->addFieldToTab($tabName, $this->getPixlrField());
+	}
+	
+	public function getPixlrField() {
 		// okay, because we're editing, we want to make sure that our editing transaction is sane - if someone else
 		// starts editing after us, the user is instead prompted to save imagename.TRANSACTIONID.ext. This works around
 		// the problem of locking images whereby we need a way to maintain the lock, even if that edit takes
@@ -37,11 +43,10 @@ class PixlrImageDecorator extends DataExtension
 		// to decide to overwrite (which is fine, if versioning is enabled) or save as a differently named file
 		$this->owner->TransactionKey = md5(Member::currentUserID().time());
 		$this->owner->write();
-
+		
 		$params = array('parent' => $this->owner->ParentID, 'transaction' => $this->owner->TransactionKey, 'imgstate' => 'existing');
-
-		$fields->removeByName('TransactionKey');
-		$fields->addFieldToTab($tabName, new PixlrEditorField('PixlrButton', _t('Pixlr.EDIT_IMAGE', 'Edit this image'), $this->owner, $params));
+		$editor = new PixlrEditorField('PixlrButton', _t('Pixlr.EDIT_IMAGE', 'Edit this image'), $this->owner, $params);
+		return $editor;
 	}
 
 	/**

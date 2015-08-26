@@ -1,24 +1,4 @@
 <?php
-/*
-
-Copyright (c) 2009, SilverStripe Australia PTY LTD - www.silverstripe.com.au
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of SilverStripe nor the names of its contributors may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-OF SUCH DAMAGE.
-*/
 
 /**
  * The controller that manages requests to and from Pixlr's servers,
@@ -29,10 +9,10 @@ OF SUCH DAMAGE.
 class PixlrController extends Controller
 {
 
-	public static $pixlr_upload_uri = 'http://pixlr.com/store/';
-	public static $pixlr_temp_uri = 'http://pixlr.com/_temp/';
+	private static $pixlr_upload_uri = 'http://pixlr.com/store/';
+	private static $pixlr_temp_uri = 'http://pixlr.com/_temp/';
 	
-	public static $allowed_actions = array(
+	private static $allowed_actions = array(
 		'saveimage',
 		'ImageSaveForm',
 		'saveimage',
@@ -41,14 +21,17 @@ class PixlrController extends Controller
 		'saveappletupload',
 	);
 
-	public static $allowed_hosts = array(
+	private static $allowed_hosts = array(
 		''
 	);
-
+	
+	private static $access_permission = 'CMS_ACCESS_AssetAdmin';
 
     public function init()
 	{
-		SS_Log::log("initting log", SS_Log::NOTICE);
+		if (!Member::currentUserID() || !Permission::check($this->config()->access_permission)) {
+			return Security::permissionFailure($this);
+		}
 		parent::init();
 	}
 
@@ -84,9 +67,8 @@ class PixlrController extends Controller
 		$file = DataObject::get_by_id('Image', (int) $request['ID']);
 
 		if ($file && $file->ID) {
-			include_once 'Zend/Http/Client.php';
 
-			$client = new Zend_Http_Client(self::$pixlr_upload_uri);
+			$client = new Zend_Http_Client($this->config()->pixlr_upload_uri);
 
 			$client->setFileUpload($file->getFullPath(), 'image');
 			$client->setMethod('POST');
@@ -98,7 +80,7 @@ class PixlrController extends Controller
 			if(strpos($result, 'http') === 0){
 				return $result;
 			}else{
-				return self::$pixlr_temp_uri . $result;
+				return $this->config()->pixlr_temp_uri . $result;
 			}
 		}
 	}
@@ -130,7 +112,7 @@ class PixlrController extends Controller
 			$editKey = isset($request['transaction']) ? $request['transaction'] : 0;
 			$existEdit = null;
 			if ($editKey) {
-				$existEdit = DataObject::get_one('Image', singleton('PixlrUtils')->dbQuote(array('TransactionKey =' => $editKey)));
+				$existEdit = Image::get()->filter('TransactionKey', $editKey)->first();
 			}
 
 			if (($request['imgstate'] == 'new' || !$existEdit || !$existEdit->ID) 
@@ -250,7 +232,7 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 			}
 
 			if (!$existing) {
-				$existing = object::create('Image');
+				$existing = Image::create();
 				$existing->ParentID = $folder->ID;
 				$existing->Filename = $folder->Filename.'/'.$fname;
 				$existing->Name = $fname;
@@ -283,12 +265,12 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 	 */
 	public function ImageSaveForm()
 	{
-		$actions = new FieldSet(
+		$actions = new FieldList(
 			new FormAction('storeimage', _t('PixlrController.SAVE_IMAGE', 'Save Image')),
 			new FormAction('closepixlr', _t('PixlrController.CLOSE_PIXLR', 'Close Without Saving'))
 		);
 
-		$fields = new FieldSet();
+		$fields = new FieldList();
 
 		// this needs to be declared here, otherwise the ajax callback
 		// doesn't work. We remove it later if we don't need it
@@ -339,11 +321,12 @@ when they attempt to save). Otherwise, choose a new name and re-edit the image l
 	 */
 	protected function getExistingImage($fname, $parent=0)
 	{
-		$filter = '"Name" = \''.Convert::raw2sql($fname)."'";
-		$filter .= $parent ? ' AND "ParentID" = '. (int) $parent : '';
-
-		$existing = DataObject::get_one('Image', $filter);
-		return $existing;
+		$filter = array('Name' => $fname);
+		if ($parent) {
+			$filter['ParentID'] = $parent;
+		}
+		
+		return Image::get()->filter($filter)->first();
 	}
 	
 

@@ -1,0 +1,13 @@
+---
+Name: pixlr_config
+---
+Director:
+  rules:
+    pixlr: PixlrController
+
+Image:
+  extensions:
+    - PixlrImageDecorator
+HtmlEditorField_Toolbar:
+  extensions:
+    - PixlrImageFormDecorator

@@ -21,7 +21,7 @@ class SupaImagePasteField extends FormField {
 		parent::__construct($name, $title, $value);
 	}
 
-	public function Field() {
+	public function Field($properties = array()) {
 		Requirements::javascript(THIRDPARTY_DIR . '/jquery-livequery/jquery.livequery.js');
 		Requirements::javascript('pixlr/thirdparty/supa/Supa.js');
 		Requirements::javascript('pixlr/javascript/supa-field.js');

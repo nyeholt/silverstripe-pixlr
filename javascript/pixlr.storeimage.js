@@ -19,19 +19,7 @@
 				window.parent.pixlr.overlay.hide();
 			} else {
 				// we might have to refresh the FolderID tree...
-				var folderList = parentWindow.find('#FolderImages');
-				if (folderList.length) {
-					var folderListElem = folderList[0];
-					folderListElem.ajaxGetFiles(imageParent, imageName, function () {
-						// so in that method it does a behaviour application, so we do
-						// that
-						folderListElem.reapplyBehaviour.bind(folderListElem).call();
-						$(folderListElem).find('a[title="'+imageTitle+'"]').click();
-						window.parent.pixlr.overlay.hide();
-					});
-				} else {
-					window.parent.pixlr.overlay.hide();
-				}
+				window.parent.pixlr.overlay.hide();
 			}
 		} else if (window.opener) {
 			window.close();
